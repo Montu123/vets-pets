@@ -92,6 +92,13 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+            <warSourceDirectory>src/main/resources/static</warSourceDirectory>
+        </configuration>
+    </plugin>
 		</plugins>
 	</build>
 	<repositories>

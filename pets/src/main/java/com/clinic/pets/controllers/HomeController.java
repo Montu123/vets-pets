@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class HomeController {
-@GetMapping("/login")
-public String login() {
-	return "index.html";
-}
+	@GetMapping("/login")
+	public String login() {
+		return "index";
+	}
 }
