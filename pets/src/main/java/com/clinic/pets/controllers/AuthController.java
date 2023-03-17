@@ -9,6 +9,7 @@ package com.clinic.pets.controllers;
  */
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ import com.clinic.pets.repository.UserRepository;
 import com.clinic.pets.security.jwt.JwtUtils;
 import com.clinic.pets.security.service.UserDetailsImpl;
 
+import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -64,14 +66,15 @@ public class AuthController {
   PasswordEncoder encoder;
   @Autowired
   private PetsRepository petsRepository;
+  
+  @Autowired
+  private EntityManager eManagers;
 
   @Autowired
   JwtUtils jwtUtils;
 
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-	  System.out.println("User Name and Password "+loginRequest.toString());
-
     Authentication authentication = authenticationManager
         .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -103,7 +106,7 @@ public class AuthController {
     }
 
     // Create new user's account
-    User user = new User(signUpRequest.getUsername(),
+    User user = new User(signUpRequest.getFirstname(),signUpRequest.getLastname(),signUpRequest.getUsername(),
                          signUpRequest.getEmail(),
                          encoder.encode(signUpRequest.getPassword()));
 
@@ -142,65 +145,24 @@ public class AuthController {
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
   }
-
+@PutMapping("/update-user")
+public ResponseEntity<?> updateUser(@Valid @RequestBody SignupRequest signUpRequest) {
+	 ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+    Optional<User> data=userRepository.findById(signUpRequest.getId());
+     User f_data=data.get();
+      f_data.setEmail(signUpRequest.getEmail());
+      f_data.setFirstname(signUpRequest.getFirstname());
+      f_data.setLastname(signUpRequest.getLastname());
+     userRepository.save(f_data);
+      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+    	        .body(new MessageResponse("user updated!"));
+    	  
+	
+}
   @PostMapping("/signout")
   public ResponseEntity<?> logoutUser() {
 	  ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
         .body(new MessageResponse("You've been signed out!"));
   }
-  @GetMapping("/all-users")
-  public ResponseEntity<?> getAllUsers(String userRole){
-	  ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
-	  if(userRole.equalsIgnoreCase("ADMIN")) {
-	List<User> allUsers=userRepository.findAll();
-	 return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(allUsers);
-	  }
-	  return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
-		        .body(new MessageResponse("You are not an Admin!"));
-	  
-  }
-  
-  @PostMapping("/add-pets")
-  public ResponseEntity<?> registerUser(@Valid @RequestBody List<PetsRequest> petPayloads) {
-	  ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
-	  for(PetsRequest petsPay:petPayloads) {
-		  
- 	   Pets pets=new Pets(petsPay.getPetname(),petsPay.getPetType(),petsPay.getMoreInfo(), petsPay.getUsername());
- 	   
- 	    pets.setUsername(petsPay.getUsername());
- 	   System.out.println("pet Name "+pets.getUsername());
-       petsRepository.save(pets);
-   }
-    return ResponseEntity.ok(new MessageResponse("Pets info saved successfully!"));
-  }
-  @GetMapping("/all-user-pets/{username}")
-  public ResponseEntity<?> getAllUsersPets(@PathVariable String username){
-	  ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
-	 List<Pets> allUserspets=petsRepository.findByUsername(username);
-	 return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(allUserspets);
-	  }
-  @GetMapping("/user-pet-delete")
-  public ResponseEntity<?> deleteUserPet(@RequestBody Pets pet){
-	  petsRepository.delete(pet);
-	   return ResponseEntity.ok(new MessageResponse("Pets info updated!"));
-	  }
-
-  @PutMapping("/edit-user-pet")
-  public ResponseEntity<String> updateData(@RequestBody PetsRequest petsPay) {
-	  Pets pets=new Pets(petsPay.getPetname(),petsPay.getPetType(),petsPay.getMoreInfo(), petsPay.getUsername());
-	  pets.setId(petsPay.getId());
-	  petsRepository.save(pets);
-      return ResponseEntity.ok("Data updated successfully");
-  }
-  
-  @GetMapping("/all-users-pets/{userrole}")
-  public ResponseEntity<?> getAllsPets(@PathVariable String userrole){
-	  ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
-	  if(userrole.equalsIgnoreCase("ADMIN")) {
-	 List<Pets> allUserspets=petsRepository.findAll();
-	 return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(allUserspets);
-	  }
-	  return ResponseEntity.ok(new MessageResponse("you are not an admin"));
-	  }
 }

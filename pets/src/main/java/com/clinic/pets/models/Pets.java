@@ -39,7 +39,10 @@ public class Pets {
 	@Size(max = 50)
 	private String username;
 
+	//new pet
+
 	public Pets(String petname, String petType, String moreInfo, String username) {
+
 		this.petname = petname;
 		this.petType = petType;
 		this.moreInfo = moreInfo;

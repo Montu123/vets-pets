@@ -21,6 +21,7 @@ public interface PetsRepository extends JpaRepository<Pets, Long>{
 	    @Query("DELETE FROM Pets u WHERE u.username = :username AND u.petname = :petname")
 	    void deleteByUsernameAndPetname(@Param("username") String username, @Param("petname") String petname);
 	 
+//	    @Query("SELECT FROM  distinct e.petType from pets e")
+//	 List<Pets> petCategory();
 
-	 
 }
